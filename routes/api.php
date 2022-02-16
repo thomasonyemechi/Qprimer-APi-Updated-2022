@@ -15,7 +15,7 @@ Route::post('/signup', [\App\Http\Controllers\AuthController::class, 'signup']);
 
 
 
-Route::group([  ], function (){
+Route::group(['middleware' => ['checker']  ], function (){
     Route::get('/get_exam_packages/{user_id}', [\App\Http\Controllers\fetcherController::class, 'getExamPackages']);
     Route::get('/get_exam_subjects/{exam_id}', [\App\Http\Controllers\fetcherController::class, 'getExamSubjects']);
     Route::get('/get_exam_years/{exam_id}', [\App\Http\Controllers\fetcherController::class, 'getExamYears']);

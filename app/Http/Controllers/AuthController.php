@@ -23,6 +23,18 @@ class AuthController extends Controller
 
     function signUp(Request $request)
     {
+        $val = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'firstname' => 'required|string',
+            'phone' => 'required',
+            'password' => 'required',
+            'lastname' => 'required'
+        ]);
+
+        if ($val->fails()){ return response(['errors'=>$val->errors()->all()], 422);}
+
+
+
         $res = Http::asForm()->post(env('LINK'), [
             'signUpUsers' => 'good',
             'firstname' => $request->firstname,
@@ -30,14 +42,20 @@ class AuthController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'password' => $request->password,
+            'referral_id' => $request->referral_id ?? 20046,
+            'sex' => $request->sex
         ]);
 
         if($res['success'] == true){
             $data = $res['data'];
             $create = $this->createUser($data);
-            return response(['message' => 'Signup successfull', 'success' => true]);
+            return response(['message' => 'Signup successfull']);
         }
-        return $res;
+
+
+        return response([
+            'message' => $res['message'],
+        ], 422);
     }
 
 
@@ -60,7 +78,9 @@ class AuthController extends Controller
             return response(['message' => 'Password updated sucessfully', 'success' => true]);
         }
 
-        return $res;
+        return response([
+            'message' => $res['message'],
+        ], 422);
     }
 
 
@@ -131,6 +151,7 @@ class AuthController extends Controller
 
     function login(Request $request)
     {
+
         $res = Http::asForm()->post(env('LINK'), [
             'LoginUserViaCbtGet' => 'good',
             'email' => $request->email,
@@ -140,13 +161,16 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => $request->password,
         ];
+
         if ($res['status'] == 1) {
             $data = $res['data'];
             $create = $this->createUser($data);
             $userData = $this->pAuth($user);
             return response($userData);
         }
-        return response($res, 422);
+        return response([
+            'message' => 'Invalid email or password, pls try again'
+        ], 422);
     }
 
 
@@ -154,10 +178,10 @@ class AuthController extends Controller
     function pAuth($user)
     {
         if (Auth::attempt($user)) {
-            $user = User::where('id', auth()->user()->id)->first(['id', 'firstname', 'lastname', 'email', 'phone']);
-            return response($user);
+            $user = User::where('id', auth()->user()->id)->first(['id', 'firstname', 'lastname', 'email', 'phone', 'sex']);
+            return $user;
         } else {
-            return response(['message' => 'error logging in', 'success' => false]);
+            return ['message' => 'error logging in', 'success' => false];
         }
     }
 
@@ -174,6 +198,7 @@ class AuthController extends Controller
                 'phone' => $data['phone'],
                 'live_id' => $data['sn'],
                 'password' => $data['pass'],
+                'sex' => $data['sex']
             ]);
         } else {
             User::where('live_id', $data['sn'])->update([
@@ -182,6 +207,7 @@ class AuthController extends Controller
                 'email' => $data['email'],
                 'phone' => $data['phone'],
                 'password' => $data['pass'],
+                'sex' => $data['sex']
             ]);
         }
     }
