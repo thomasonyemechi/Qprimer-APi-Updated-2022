@@ -25,9 +25,6 @@ Route::group(['middleware' => ['checker']  ], function (){
     Route::get('/history/{user_id}', [\App\Http\Controllers\fetcherController::class, 'fetchAllExamHistory']);
     Route::get('/history_info/{test_id}', [\App\Http\Controllers\fetcherController::class, 'historyInfo']);
     Route::post('/submit_answer', [\App\Http\Controllers\fetcherController::class, 'answerProcessor']);
-
-
-
 });
 
 
